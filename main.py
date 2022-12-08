@@ -89,9 +89,18 @@ def print_statistics():
             print(f"STATUS [{key}]: {value} urls ({formatted_string}%)")
 
 
-def crawler(starting_page, tag):
-    if not validators.url(starting_page):
+def input_data_validation(url, tag):
+    if not validators.url(url):
         print('The starting page should be a valid url!')
+        return False
+    if type(tag) != str:
+        print('Tag should be a string!')
+        return False
+    return True
+
+
+def crawler(starting_page, tag):
+    if not input_data_validation(starting_page, tag):
         return
     time_n = time.time()
     spider(starting_page, tag)
@@ -106,3 +115,5 @@ def crawler(starting_page, tag):
 
 if __name__ == '__main__':
     crawler('https://profs.info.uaic.ro/~ciortuz/', "ciortuz")
+    # crawler('https://ro.wikipedia.org', "liveblog")
+    # crawler('https://sites.google.com/view/iafii/laboratoare?authuser=0', "iafii")
