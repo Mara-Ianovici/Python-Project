@@ -1,5 +1,4 @@
-# Python-Project
-Project 9B - Spider
+# Spider-B9
 Functionalities:
 - Recursively scrapes urls from the starting page
 - Searches for all the <a> html tags that contain the given string (tag) in href
