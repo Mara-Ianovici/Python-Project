@@ -10,6 +10,7 @@ import urllib.parse
 spider_tree = dict()
 accessed_pages = []
 visited_pages = []
+url_status_statistics = dict()
 
 
 def get_matched_hrefs(starting_page, tag, response_text):
@@ -28,6 +29,14 @@ def get_matched_hrefs(starting_page, tag, response_text):
     return hrefs_list
 
 
+def store_status_information(status):
+    global url_status_statistics
+    if status in url_status_statistics.keys():
+        url_status_statistics[status] += 1
+    else:
+        url_status_statistics[status] = 1
+
+
 def spider(starting_page, tag):
     global spider_tree, visited_pages
     if len(starting_page) > 256:
@@ -38,6 +47,7 @@ def spider(starting_page, tag):
     try:
         response = requests.get(starting_page)
         print(f"[{response.status_code}] - {starting_page}")
+        store_status_information(response.status_code)
         response_text = response.text
         hrefs_list = get_matched_hrefs(starting_page, tag, response_text)
         spider_tree[starting_page] = hrefs_list[1:]
@@ -49,6 +59,7 @@ def spider(starting_page, tag):
     except requests.exceptions.RequestException as e:
         print(f"[ERROR] {e}")
         spider_tree[starting_page] = ["[ERROR]"]
+        store_status_information("ERROR")
 
 
 def print_spider_tree(current_key, indent, parents):
@@ -68,12 +79,30 @@ def print_spider_tree(current_key, indent, parents):
             print_spider_tree(item, indent + 1, parents_tmp)
 
 
-if __name__ == '__main__':
+def print_statistics():
+    global url_status_statistics
+    total_number_of_urls = sum(url_status_statistics.values())
+    print(f"The total number of urls accessed is {total_number_of_urls}")
+    if total_number_of_urls != 0:
+        for key, value in url_status_statistics.items():
+            formatted_string = "{:.2f}".format((value/total_number_of_urls) * 100)
+            print(f"STATUS [{key}]: {value} urls ({formatted_string}%)")
+
+
+def crawler(starting_page, tag):
+    if not validators.url(starting_page):
+        print('The starting page should be a valid url!')
+        return
     time_n = time.time()
-    spider('https://profs.info.uaic.ro/~ciortuz/', "ciortuz")
+    spider(starting_page, tag)
     time_spider = time.time() - time_n
     time_n = time.time()
-    print_spider_tree('https://profs.info.uaic.ro/~ciortuz/', 0, [])
+    print_spider_tree(starting_page, 0, [])
     time_print = time.time() - time_n
-    print(f"Total time to get all links: {time_spider}")
-    print(f"Total time to get the spider structure: {time_print}")
+    print(f"Total time to get all links: {time_spider}.")
+    print(f"Total time to get the spider structure: {time_print}.")
+    print_statistics()
+
+
+if __name__ == '__main__':
+    crawler('https://profs.info.uaic.ro/~ciortuz/', "ciortuz")
