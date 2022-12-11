@@ -11,6 +11,7 @@ spider_tree = dict()
 accessed_pages = []
 visited_pages = []
 url_status_statistics = dict()
+showed_pages = []
 
 
 def get_matched_hrefs(starting_page, tag, response_text):
@@ -63,7 +64,7 @@ def spider(starting_page, tag):
 
 
 def print_spider_tree(current_key, indent, parents):
-    global spider_tree
+    global spider_tree, showed_pages
     indent_tmp = indent
     indent_str = ""
     while indent_tmp:
@@ -72,11 +73,13 @@ def print_spider_tree(current_key, indent, parents):
     parents_tmp = copy.deepcopy(parents)
     parents_tmp.append(current_key)
     print(f"{indent_str}{current_key} -> {spider_tree[current_key][-1]}")
-    for item in spider_tree[current_key][:-1]:
-        if len(parents) > 0 and item in parents:
-            print(f"{indent_str}----{item} -> {spider_tree[item][-1]} (...infinite loop...)")
-        else:
-            print_spider_tree(item, indent + 1, parents_tmp)
+    if current_key not in showed_pages:
+        for item in spider_tree[current_key][:-1]:
+            if len(parents) > 0 and item in parents:
+                print(f"{indent_str}----{item} -> {spider_tree[item][-1]} (...infinite loop...)")
+            else:
+                print_spider_tree(item, indent + 1, parents_tmp)
+        showed_pages.append(current_key)
 
 
 def print_statistics():
